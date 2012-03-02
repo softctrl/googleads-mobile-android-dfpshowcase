@@ -1,0 +1,16 @@
+===== Android DoubleClick for Publishers Showcase Application =====
+
+This is the DFP Showcase Application for Android.  It consists examples of
+various DFP banner and interstitial creative types.
+
+Requirements:
+- Google AdMob Ads SDK version 4.3.1
+- Android SDK version 3.2
+- Android Emulator/Device version 2.2 or higher
+- Eclipse (recommended)
+
+Installation steps:
+1. Download the Google AdMob Ads SDK from
+   http://code.google.com/mobile/ads/download.html.
+2. Add the Google AdMob Ads SDK to your build path.
+3. Run the application on an Android 2.2 or higher device.

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DFP Showcase</string>
+    <string name="show_interstitial">Show Interstitial</string>
+    <string name="application_content">Application Content Goes Here</string>
+</resources>
+

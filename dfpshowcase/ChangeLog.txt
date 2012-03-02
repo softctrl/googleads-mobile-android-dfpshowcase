@@ -1,0 +1,21 @@
+Android DoubleClick for Publishers Showcase Change Log
+
+***********
+Version 1.1
+***********
+- Removed interstitial example placeholder.
+- Changed the application icon.
+
+***********
+Version 1.0
+***********
+- Added Banner example.
+- Added Expandable example.
+- Added AdMob Backfill example.
+- Added Rich Media Instersitial example.
+- Added Image Animation example.
+- Added Click to Download example.
+- Added Click to Call example.
+- Added Click to Map example.
+- Added placeholder for video interstitial example.
+
