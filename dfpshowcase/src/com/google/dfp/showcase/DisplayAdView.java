@@ -18,12 +18,14 @@ import com.google.ads.Ad;
 import com.google.ads.AdListener;
 import com.google.ads.AdRequest;
 import com.google.ads.AdRequest.ErrorCode;
+import com.google.ads.doubleclick.DfpExtras;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
 import com.google.ads.InterstitialAd;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -31,6 +33,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 /**
  * This activity showcases the ad type that the user selected.
@@ -40,7 +43,7 @@ import android.widget.RelativeLayout;
 public class DisplayAdView extends Activity implements OnClickListener, AdListener {
   private AdView adView;
   private InterstitialAd interstitial;
-  private String adType;
+  private String adFormat;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -53,25 +56,38 @@ public class DisplayAdView extends Activity implements OnClickListener, AdListen
 
     this.adView = null;
     this.interstitial = null;
-    this.adType = getIntent().getStringExtra("adType");
-    if (adType.matches(Constants.AdTypes.BANNER)) {
-      this.adView = new AdView(this, AdSize.BANNER, Constants.AdUnits.BANNER);
-    } else if (adType.matches(Constants.AdTypes.EXPANDABLE)) {
-      this.adView = new AdView(this, AdSize.BANNER, Constants.AdUnits.EXPANDABLE);
-    } else if (adType.matches(Constants.AdTypes.ADMOB_BACKFILL)) {
-      this.adView = new AdView(this, AdSize.BANNER, Constants.AdUnits.ADMOB_BACKFILL);
-    } else if (adType.matches(Constants.AdTypes.RICH_MEDIA_INTERSTITIAL)) {
-      this.interstitial = new InterstitialAd(this, Constants.AdUnits.RICH_MEDIA_INTERSTITIAL);
-    } else if (adType.matches(Constants.AdTypes.IMAGE_ANIMATION)) {
-      this.adView = new AdView(this,
-          new AdSize(Constants.IMAGE_ANIMATION_WIDTH, Constants.IMAGE_ANIMATION_HEIGHT),
-          Constants.AdUnits.IMAGE_ANIMATION);
-    } else if (adType.matches(Constants.AdTypes.CLICK_TO_DOWNLOAD)) {
-      this.adView = new AdView(this, AdSize.BANNER, Constants.AdUnits.CLICK_TO_DOWNLOAD);
-    } else if (adType.matches(Constants.AdTypes.CLICK_TO_CALL)) {
-      this.adView = new AdView(this, AdSize.BANNER, Constants.AdUnits.CLICK_TO_CALL);
-    } else if (adType.matches(Constants.AdTypes.CLICK_TO_MAP)) {
-      this.adView = new AdView(this, AdSize.BANNER, Constants.AdUnits.CLICK_TO_MAP);
+    this.adFormat = getIntent().getStringExtra(Constants.AD_FORMAT_KEY);
+    // Define the adView or interstitial based on the ad type.
+    if (AdFormat.IMAGE.name.equals(adFormat)) {
+      this.adView = new AdView(this, getWidestBannerSize(), AdFormat.IMAGE.adUnit);
+    } else if (AdFormat.ADMOB.name.equals(adFormat)) {
+      this.adView = new AdView(this, AdSize.BANNER, AdFormat.ADMOB.adUnit);
+    } else if (AdFormat.MEDIATION.name.equals(adFormat)) {
+      this.adView = new AdView(this, AdSize.BANNER, AdFormat.MEDIATION.adUnit);
+    } else if (AdFormat.TEXT_IMAGE.name.equals(adFormat)) {
+      this.adView = new AdView(this, AdSize.BANNER, AdFormat.TEXT_IMAGE.adUnit);
+    } else if (AdFormat.DFA_TAG.name.equals(adFormat)) {
+      this.adView = new AdView(this, AdSize.BANNER, AdFormat.DFA_TAG.adUnit);
+    } else if (AdFormat.MRAID_EXPANDABLE.name.equals(adFormat)) {
+      this.adView = new AdView(this, getWidestBannerSize(), AdFormat.MRAID_EXPANDABLE.adUnit);
+    } else if (AdFormat.INTERSTITIAL.name.equals(adFormat)) {
+      this.interstitial = new InterstitialAd(this, AdFormat.INTERSTITIAL.adUnit);
+    } else if (AdFormat.IMAGE_CAROUSEL.name.equals(adFormat)) {
+      this.adView = new AdView(this, AdSize.IAB_MRECT, AdFormat.IMAGE_CAROUSEL.adUnit);
+    } else if (AdFormat.IMAGE_PLUS1.name.equals(adFormat)) {
+      this.adView = new AdView(this, AdSize.IAB_MRECT, AdFormat.IMAGE_PLUS1.adUnit);
+    } else if (AdFormat.INTERSTITIAL_AUTO_CLOSE.name.equals(adFormat)) {
+      this.interstitial = new InterstitialAd(this, AdFormat.INTERSTITIAL_AUTO_CLOSE.adUnit);
+    } else if (AdFormat.IMAGE_ANIMATION.name.equals(adFormat)) {
+      this.interstitial = new InterstitialAd(this, AdFormat.IMAGE_ANIMATION.adUnit);
+    } else if (AdFormat.VIDEO_INTERSTITIAL.name.equals(adFormat)) {
+      this.interstitial = new InterstitialAd(this, AdFormat.VIDEO_INTERSTITIAL.adUnit);
+    } else if (AdFormat.CLICK_TO_DOWNLOAD.name.equals(adFormat)) {
+      this.adView = new AdView(this, getWidestBannerSize(), AdFormat.CLICK_TO_DOWNLOAD.adUnit);
+    } else if (AdFormat.CLICK_TO_CALL.name.equals(adFormat)) {
+      this.adView = new AdView(this, getWidestBannerSize(), AdFormat.CLICK_TO_CALL.adUnit);
+    } else if (AdFormat.CLICK_TO_MAP.name.equals(adFormat)) {
+      this.adView = new AdView(this, getWidestBannerSize(), AdFormat.CLICK_TO_MAP.adUnit);
     }
 
     if (this.interstitial != null) {
@@ -85,15 +101,41 @@ public class DisplayAdView extends Activity implements OnClickListener, AdListen
       RelativeLayout layout = (RelativeLayout) findViewById(R.id.adViewDisplay);
       if (layout != null) {
         RelativeLayout.LayoutParams params = new
-            RelativeLayout.LayoutParams(LayoutParams.FILL_PARENT,
+            RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT,
                                         LayoutParams.WRAP_CONTENT);
         params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         layout.addView(adView);
         this.adView.setLayoutParams(params);
       }
-      AdRequest request = this.buildRequest();
-      this.adView.loadAd(request);
+      this.adView.loadAd(new AdRequest());
     }
+  }
+
+  /**
+   * Gets a 360x50 {@link AdSize} if the device's screen is at least 360 dp wide, otherwise gets a
+   * 320x50 {@link AdSize}.
+   * NOTE: The AdFormat will claim that the AdSize is 360x50, but this method allows us to support
+   * older devices that are 320dp wide - because if a 360x50dp is requested on a 320dp wide device,
+   * AdMob won't show the ad when it comes back because it is too big.
+   *
+   * @return an appropriate {@link AdSize} for the device.
+   */
+  private AdSize getWidestBannerSize() {
+    if (getScreenWidthInDp() >= 360) {
+      return new AdSize(360, 50);
+    } else {
+      return AdSize.BANNER;
+    }
+  }
+
+  private int getScreenWidthInDp() {
+    DisplayMetrics dm = this.getResources().getDisplayMetrics();
+    return (int) (dm.widthPixels / dm.density);
+  }
+
+  private int getScreenHeightInDp() {
+    DisplayMetrics dm = this.getResources().getDisplayMetrics();
+    return (int) (dm.heightPixels / dm.density);
   }
 
   /** Handles the on click events for each button. */
@@ -102,58 +144,23 @@ public class DisplayAdView extends Activity implements OnClickListener, AdListen
     final int id = view.getId();
     switch (id) {
       case R.id.showInterstitial:
-        AdRequest request = this.buildRequest();
         if (this.interstitial != null) {
-          this.interstitial.loadAd(request);
+          AdRequest adRequest = new AdRequest();
+          DfpExtras extras = new DfpExtras();
+          extras.addExtra("screenWidth", getScreenWidthInDp());
+          extras.addExtra("screenHeight", getScreenHeightInDp());
+          adRequest.setNetworkExtras(extras);
+          this.interstitial.loadAd(adRequest);
         }
         break;
     }
   }
 
-  /**
-   * Builds a request with the proper keyword based on the adType.
-   * @return An AdRequest object.
-   */
-  private AdRequest buildRequest() {
-    AdRequest request = new AdRequest();
-    if (this.adType.matches(Constants.AdTypes.BANNER)) {
-      request.addExtra("kw", "banner");
-    } else if (this.adType.matches(Constants.AdTypes.EXPANDABLE)) {
-      request.addExtra("kw", "expandable");
-    } else if (this.adType.matches(Constants.AdTypes.ADMOB_BACKFILL)) {
-      request.addExtra("kw", "admob");
-    } else if (this.adType.matches(Constants.AdTypes.RICH_MEDIA_INTERSTITIAL)) {
-      request.addExtra("kw", "interstitial1");
-    } else if (this.adType.matches(Constants.AdTypes.IMAGE_ANIMATION)) {
-      request.addExtra("kw", "imageanimation");
-    } else if (this.adType.matches(Constants.AdTypes.CLICK_TO_DOWNLOAD)) {
-      request.addExtra("kw", "appdownload");
-    } else if (this.adType.matches(Constants.AdTypes.CLICK_TO_CALL)) {
-      request.addExtra("kw", "clicktocall");
-    } else if (this.adType.matches(Constants.AdTypes.CLICK_TO_MAP)) {
-      request.addExtra("kw", "clicktomap");
-    }
-    return request;
-  }
-
-  @Override
-  public void onDismissScreen(Ad ad) {
-    Log.v(Constants.SHOWCASE, "onDismissScreen");
-  }
-
-  @Override
-  public void onLeaveApplication(Ad ad) {
-    Log.v(Constants.SHOWCASE, "onLeaveApplication");
-  }
-
-  @Override
-  public void onPresentScreen(Ad ad) {
-    Log.v(Constants.SHOWCASE, "onPresentScreen");
-  }
-
+  /** AdListener interface implementation. */
   @Override
   public void onReceiveAd(Ad ad) {
-    Log.v(Constants.SHOWCASE, "Did Receive Ad");
+    Log.v(Constants.SHOWCASE, "onReceiveAd");
+    Toast.makeText(this, "onReceiveAd", Toast.LENGTH_SHORT).show();
     if (this.interstitial != null && this.interstitial == ad && this.interstitial.isReady()) {
       this.interstitial.show();
     }
@@ -161,6 +168,26 @@ public class DisplayAdView extends Activity implements OnClickListener, AdListen
 
   @Override
   public void onFailedToReceiveAd(Ad ad, ErrorCode errorCode) {
-    Log.v(Constants.SHOWCASE, "Failed to receive ad (" + errorCode + ")");
+    String message = "onFailedToReceiveAd (" + errorCode + ")";
+    Log.v(Constants.SHOWCASE, message);
+    Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+  }
+
+  @Override
+  public void onPresentScreen(Ad ad) {
+    Log.v(Constants.SHOWCASE, "onPresentScreen");
+    Toast.makeText(this, "onPresentScreen", Toast.LENGTH_SHORT).show();
+  }
+
+  @Override
+  public void onDismissScreen(Ad ad) {
+    Log.v(Constants.SHOWCASE, "onDismissScreen");
+    Toast.makeText(this, "onDismissScreen", Toast.LENGTH_SHORT).show();
+  }
+
+  @Override
+  public void onLeaveApplication(Ad ad) {
+    Log.v(Constants.SHOWCASE, "onLeaveApplication");
+    Toast.makeText(this, "onLeaveApplication", Toast.LENGTH_SHORT).show();
   }
 }

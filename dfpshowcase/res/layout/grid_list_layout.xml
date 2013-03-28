@@ -27,13 +27,5 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="#606060"
             android:layout_below="@id/adType"/>
-        <TextView android:id="@+id/premiumFeature"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/adType"
-            android:paddingLeft="5dp"
-            android:textSize="12sp"
-            android:textColor="#FF0000"
-            android:layout_alignParentTop="true"/>
     </RelativeLayout>
 </LinearLayout>

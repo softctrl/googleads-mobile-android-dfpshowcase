@@ -21,65 +21,80 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.TabHost;
+import android.widget.TabHost.TabContentFactory;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Main activity class for application.  Displays a list of different DFP ad
- * examples.
+ * Main activity class for application. Displays a list of bundled and premium DFP creative types.
  *
  * @author api.eleichtenschl@gmail.com (Eric Leichtenschlag)
  */
 public class DfpShowcase extends Activity {
+  private static final String TAB_TAG = "tab";
+  private static final String INDICATOR_BUNDLED = "Bundled";
+  private static final String INDICATOR_PREMIUM = "Premium";
+  private TabHost tabHost;
+
   /** Called when the activity is first created. */
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
+    this.tabHost = (TabHost) findViewById(android.R.id.tabhost);
+    this.tabHost.setup();
 
-    ListView listView = (ListView) findViewById(R.id.listView);
-    if (listView != null) {
-      ListAdapter listAdapter = new ListAdapter(DfpShowcase.this, generateListItems());
-      listView.setAdapter(listAdapter);
-      listView.setOnItemClickListener(new OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> adapt, View view, int position, long id) {
-          TextView textView = (TextView) view.findViewById(R.id.adType);
-          if (textView != null) {
-            Toast.makeText(getApplicationContext(), textView.getText(), Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(DfpShowcase.this, DisplayAdView.class);
-            // Pass the ad type to the DisplayAdView activity.
-            intent.putExtra("adType", textView.getText());
-            startActivity(intent);
-          }
-        }
-      });
+    // Initialize the tabs.
+    this.tabHost.addTab(this.tabHost.newTabSpec(INDICATOR_BUNDLED)
+        .setIndicator(INDICATOR_BUNDLED)
+        .setContent(new TabFactory(this)));
+    this.tabHost.addTab(this.tabHost.newTabSpec(INDICATOR_PREMIUM)
+        .setIndicator(INDICATOR_PREMIUM)
+        .setContent(new TabFactory(this)));
+
+    // Set the current tab if one exists.
+    if (savedInstanceState != null) {
+      this.tabHost.setCurrentTabByTag(savedInstanceState.getString(TAB_TAG));
     }
   }
 
-  /**
-   * Generates a list of ListItem objects from the ad icons, types, sizes,
-   * and premium features constants arrays.  This list will become the
-   * input to the ListAdapter.
-   */
-  private List<ListItem> generateListItems() {
-    List<ListItem> listItems = new ArrayList<ListItem>();
-    // All four arrays must have the same length to continue.
-    if ((Constants.AD_ICONS.length == Constants.AD_TYPES.length)
-        && (Constants.AD_ICONS.length == Constants.AD_SIZES.length)
-        && (Constants.AD_ICONS.length == Constants.PREMIUM_FEATURES.length)) {
-      for (int index = 0; index < Constants.AD_ICONS.length; index++) {
-        ListItem listItem = new ListItem();
-        listItem.setAdIcon(Constants.AD_ICONS[index]);
-        listItem.setAdType(Constants.AD_TYPES[index]);
-        listItem.setAdSize(Constants.AD_SIZES[index]);
-        listItem.setIsPremiumFeature(Constants.PREMIUM_FEATURES[index]);
-        listItems.add(listItem);
-      }
+  @Override
+  protected void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    outState.putString(TAB_TAG, this.tabHost.getCurrentTabTag());
+  }
+
+  /** Creates an empty tab. */
+  static class TabFactory implements TabContentFactory {
+    private final Activity activity;
+
+    public TabFactory(Activity activity) {
+      this.activity = activity;
     }
-    return listItems;
+
+    @Override
+    public View createTabContent(String tag) {
+      ListView listView = new ListView(this.activity);
+      if (INDICATOR_BUNDLED.equals(tag)) {
+        listView.setAdapter(new ListAdapter(this.activity, AdFormat.BUNDLED_AD_FORMATS));
+      } else if (INDICATOR_PREMIUM.equals(tag)) {
+        listView.setAdapter(new ListAdapter(this.activity, AdFormat.PREMIUM_AD_FORMATS));
+      }
+      listView.setOnItemClickListener(new OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+          TextView textView = (TextView) view.findViewById(R.id.adType);
+          if (textView != null) {
+            Toast.makeText(activity, textView.getText(), Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(activity, DisplayAdView.class);
+            // Pass the ad type to the DisplayAdView activity.
+            intent.putExtra(Constants.AD_FORMAT_KEY, textView.getText());
+            activity.startActivity(intent);
+          }
+        }
+      });
+      return listView;
+    }
   }
 }

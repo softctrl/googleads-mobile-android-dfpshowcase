@@ -31,23 +31,23 @@ import java.util.List;
  * @author api.eleichtenschl@gmail.com (Eric Leichtenschlag)
  */
 public class ListAdapter extends BaseAdapter {
-  private List<ListItem> listItems;
+  private List<AdFormat> adFormats;
   private static LayoutInflater inflater = null;
 
-  public ListAdapter(Activity activity, List<ListItem> listItems) {
-    this.listItems = listItems;
+  public ListAdapter(Activity activity, List<AdFormat> adFormats) {
+    this.adFormats = adFormats;
     ListAdapter.inflater = (LayoutInflater) activity
         .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
   }
 
   @Override
   public int getCount() {
-    return listItems.size();
+    return adFormats.size();
   }
 
   @Override
-  public ListItem getItem(int position) {
-    return listItems.get(position);
+  public AdFormat getItem(int position) {
+    return adFormats.get(position);
   }
 
   @Override
@@ -59,7 +59,6 @@ public class ListAdapter extends BaseAdapter {
     public ImageView adIcon;
     public TextView adType;
     public TextView adSize;
-    public TextView premiumFeature;
   }
 
   @Override
@@ -72,20 +71,14 @@ public class ListAdapter extends BaseAdapter {
       holder.adIcon = (ImageView) view.findViewById(R.id.adIcon);
       holder.adType = (TextView) view.findViewById(R.id.adType);
       holder.adSize = (TextView) view.findViewById(R.id.adSize);
-      holder.premiumFeature = (TextView) view.findViewById(R.id.premiumFeature);
       view.setTag(holder);
     } else {
       holder = (ViewHolder) view.getTag();
     }
-    ListItem listItem = this.getItem(position);
-    holder.adIcon.setImageResource(listItem.getAdIcon());
-    holder.adType.setText(listItem.getAdType());
-    holder.adSize.setText(listItem.getAdSize());
-    if (listItem.getIsPremiumFeature()) {
-      holder.premiumFeature.setText(Constants.PREMIUM);
-    } else {
-      holder.premiumFeature.setText("");
-    }
+    AdFormat adFormat = this.getItem(position);
+    holder.adIcon.setImageResource(adFormat.icon);
+    holder.adType.setText(adFormat.name);
+    holder.adSize.setText(adFormat.size);
 
     return view;
   }
